@@ -8,10 +8,19 @@ management:
 logging:
   level:
     io.corbs: DEBUG
-    org.springframework.cloud: DEBUG
+    org.springframework.cloud: DEBUG  
 spring:
   cloud:
     config:
       server:
         git:
-          uri: https://github.com/corbtastik/config-repo
+          uri: git@github.com:corbtastik/config-repo.git
+          ignoreLocalSshSettings: true
+          strictHostKeyChecking: false
+          privateKey: |
+            -----BEGIN RSA PRIVATE KEY-----
+            -----END RSA PRIVATE KEY-----
+        encrypt:
+          key: |
+            -----BEGIN PRIVATE KEY-----
+            -----END PRIVATE KEY-----                    

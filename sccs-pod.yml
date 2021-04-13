@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sccs
+  name: sccs-external
+  namespace: arcade
+spec:
+  ports:
+    - nodePort: 30888
+      port: 8888
+      protocol: TCP
+      targetPort: 8888
+  selector:
+    app: sccs
+  type: NodePort
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: sccs-config-map
+  namespace: arcade
+  labels:
+    app: sccs
+data:
+  application.yml: |
+    server:
+      port: 8888
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: '*'
+    logging:
+      level:
+        io.corbs: DEBUG
+        org.springframework.cloud: DEBUG  
+    spring:
+      cloud:
+        config:
+          server:
+            git:
+              uri: git@github.com:corbtastik/config-repo.git
+              ignoreLocalSshSettings: true
+              strictHostKeyChecking: false
+              privateKey: |
+                -----BEGIN RSA PRIVATE KEY-----
+                -----END RSA PRIVATE KEY-----
+            encrypt:
+              key: |
+                -----BEGIN PRIVATE KEY-----
+                -----END PRIVATE KEY-----
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sccs
+  namespace: arcade
+  labels:
+    app: sccs
+spec:
+  volumes:
+    - name: sccs-config
+      configMap:
+        name: sccs-config-map
+  containers:
+    - name: sccs-container
+      image: corbsmartin/sccs:latest
+      imagePullPolicy: Always
+      volumeMounts:
+        - name: sccs-config
+          mountPath: /config
